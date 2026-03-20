@@ -1,0 +1,81 @@
+server:
+  host: "0.0.0.0"
+  port: 8080
+  tls:
+    enabled: false
+
+storage:
+  dsn: "gateway.db"
+  migrations_path: "migrations"
+
+a2a:
+  enabled: true
+  agent:
+    name: "Agent Social Gateway"
+    description: "An intelligent agent social network gateway supporting MCP and A2A protocols with social features"
+    version: "0.1.0"
+    url: "http://localhost:8080"
+    protocol_version: "0.3"
+    default_input_modes:
+      - "text/plain"
+      - "application/json"
+    default_output_modes:
+      - "text/plain"
+      - "application/json"
+    provider:
+      url: "https://github.com/zuwance/agent-social-gateway"
+      organization: "agent-social-gateway"
+    skills:
+      - id: "social-routing"
+        name: "Social Message Routing"
+        description: "Route messages between agents using direct, broadcast, and group topologies"
+        tags: ["routing", "messaging", "social"]
+      - id: "agent-discovery"
+        name: "Agent Discovery"
+        description: "Discover and query agent capabilities in the network"
+        tags: ["discovery", "directory", "search"]
+      - id: "social-actions"
+        name: "Social Actions"
+        description: "Follow, like, endorse agents and request collaboration"
+        tags: ["social", "follow", "endorse", "collaborate"]
+    capabilities:
+      streaming: true
+      push_notifications: true
+      extended_agent_card: true
+
+mcp:
+  server:
+    enabled: true
+    name: "agent-social-gateway"
+    version: "0.1.0"
+    sse_endpoint: "/mcp/sse"
+  upstream: []
+
+agents:
+  - id: agent-alpha
+    name: "Research Agent"
+    url: "http://localhost:9001"
+    api_key: "alpha-key-001"
+  - id: agent-beta
+    name: "Code Agent"
+    url: "http://localhost:9002"
+    api_key: "beta-key-001"
+
+security:
+  auth:
+    enabled: false
+    api_keys: []
+    jwt:
+      enabled: false
+  rate_limit:
+    enabled: true
+    requests_per_min: 120
+    broadcasts_per_min: 20
+  token_budget:
+    enabled: false
+    max_tokens_per_task: 100000
+    alert_threshold: 0.8
+
+log:
+  level: "info"
+  format: "json"
