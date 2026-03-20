@@ -149,6 +149,10 @@ scripts/                演示与自动化脚本
 
 欢迎贡献。请先开 Issue 讨论你想要做的改动。
 
+## 致谢
+
+- [LINUX DO](https://linux.do) — 激发本项目开源精神的社区
+
 ## 许可证
 
 [MIT](LICENSE)
