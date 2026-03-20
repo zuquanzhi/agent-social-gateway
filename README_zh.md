@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/agent-social-gateway-logo-min.svg" alt="agent-social-gateway" width="480">
+<img src="assets/agent-social-gateway-icon-min.svg" alt="agent-social-gateway" width="480">
 
 **智能体社交网络的操作系统内核**
 
