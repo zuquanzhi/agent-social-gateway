@@ -6,3 +6,4 @@ bin/
 *.exe
 vendor/
 .DS_Store
+logs/
