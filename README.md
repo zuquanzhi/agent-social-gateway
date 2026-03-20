@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/agent-social-gateway-icon-min.svg" alt="agent-social-gateway" width="480">
+<img src="assets/agent-social-gateway-icon-min.svg" alt="agent-social-gateway" width="180">
 
 **The Operating System Kernel for Agent Social Networks**
 
