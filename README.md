@@ -155,6 +155,10 @@ scripts/                Demo & automation scripts
 
 Contributions are welcome. Please open an issue first to discuss what you'd like to change.
 
+## Acknowledgements
+
+- [LINUX DO](https://linux.do) — Community that inspired the open-source spirit of this project
+
 ## License
 
 [MIT](LICENSE)
