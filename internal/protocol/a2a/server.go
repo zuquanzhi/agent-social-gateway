@@ -25,6 +25,7 @@ type Server struct {
 	taskStore *TaskStore
 	logger    *slog.Logger
 	agents    map[string]*config.AgentRegistration
+	socialExt *SocialExtensions
 
 	subscribers   map[string][]chan *StreamEvent
 	subscribersMu sync.RWMutex
@@ -71,6 +72,11 @@ func NewServer(cfg *config.A2AConfig, taskStore *TaskStore, agents []config.Agen
 	}
 }
 
+// SetSocialExtensions connects social extension capabilities to this server.
+func (s *Server) SetSocialExtensions(ext *SocialExtensions) {
+	s.socialExt = ext
+}
+
 func buildAgentCard(cfg *config.A2AConfig) *types.AgentCard {
 	card := &types.AgentCard{
 		Name:        cfg.Agent.Name,
@@ -87,6 +93,7 @@ func buildAgentCard(cfg *config.A2AConfig) *types.AgentCard {
 			Streaming:         cfg.Agent.Capabilities.Streaming,
 			PushNotifications: cfg.Agent.Capabilities.PushNotifications,
 			ExtendedAgentCard: cfg.Agent.Capabilities.ExtendedAgentCard,
+			SocialExtensions:  true,
 		},
 		DefaultInputModes:  cfg.Agent.DefaultInputModes,
 		DefaultOutputModes: cfg.Agent.DefaultOutputModes,
@@ -145,6 +152,11 @@ func (s *Server) handleAgentCard(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleExtendedAgentCard(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(s.card)
+}
+
+// GetSocialExtensions returns the social extensions (if set).
+func (s *Server) GetSocialExtensions() *SocialExtensions {
+	return s.socialExt
 }
 
 func (s *Server) handleSendMessage(w http.ResponseWriter, r *http.Request) {
@@ -273,6 +285,10 @@ func (s *Server) forwardMessage(w http.ResponseWriter, r *http.Request, req *Sen
 
 	s.logger.Info("message forwarded", "task_id", taskID, "target", targetID, "status", "completed")
 	s.notifySubscribers(taskID, &StreamEvent{Type: "task", Payload: task})
+
+	if s.socialExt != nil {
+		s.socialExt.IncrementContextMessageCount(contextID)
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(SendMessageResponse{Task: task})
@@ -578,6 +594,29 @@ func (s *Server) handleJSONRPC(w http.ResponseWriter, r *http.Request) {
 		json.Unmarshal(req.Params, &params)
 		r = setURLParam(r, "taskID", params.ID)
 		s.handleCancelTask(w, r)
+	case "social/event":
+		if s.socialExt != nil {
+			var evt types.SocialEvent
+			if err := json.Unmarshal(req.Params, &evt); err != nil {
+				writeJSONRPCError(w, req.ID, -32602, "invalid params", err.Error())
+				return
+			}
+			if evt.Timestamp == "" {
+				evt.Timestamp = time.Now().UTC().Format(time.RFC3339)
+			}
+			if err := s.socialExt.ProcessSocialEvent(&evt); err != nil {
+				writeJSONRPCError(w, req.ID, -32603, "event failed", err.Error())
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(JSONRPCResponse{
+				JSONRPC: "2.0",
+				Result:  map[string]any{"status": "accepted", "event": evt},
+				ID:      req.ID,
+			})
+		} else {
+			writeJSONRPCError(w, req.ID, -32601, "social extensions not enabled", nil)
+		}
 	default:
 		writeJSONRPCError(w, req.ID, -32601, "method not found", req.Method)
 	}

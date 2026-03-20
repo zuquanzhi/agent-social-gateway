@@ -110,9 +110,10 @@ type AgentSkill struct {
 }
 
 type AgentCapabilities struct {
-	Streaming         bool   `json:"streaming,omitempty" yaml:"streaming"`
-	PushNotifications bool   `json:"pushNotifications,omitempty" yaml:"push_notifications"`
-	ExtendedAgentCard bool   `json:"extendedAgentCard,omitempty" yaml:"extended_agent_card"`
+	Streaming         bool `json:"streaming,omitempty" yaml:"streaming"`
+	PushNotifications bool `json:"pushNotifications,omitempty" yaml:"push_notifications"`
+	ExtendedAgentCard bool `json:"extendedAgentCard,omitempty" yaml:"extended_agent_card"`
+	SocialExtensions  bool `json:"socialExtensions,omitempty" yaml:"social_extensions"`
 }
 
 type AgentProvider struct {
@@ -139,6 +140,18 @@ type AgentCard struct {
 	DefaultOutputModes  []string          `json:"defaultOutputModes" yaml:"default_output_modes"`
 	Skills              []AgentSkill      `json:"skills" yaml:"skills"`
 	IconURL             string            `json:"iconUrl,omitempty" yaml:"icon_url,omitempty"`
+	SocialProfile       *SocialProfile    `json:"socialProfile,omitempty" yaml:"social_profile,omitempty"`
+}
+
+// SocialProfile extends the standard Agent Card with social metadata (A2A Social Extension Layer 1).
+type SocialProfile struct {
+	Followers    int                `json:"followers"`
+	Following    int                `json:"following"`
+	Reputation   float64            `json:"reputation"`
+	TrustLevel   string             `json:"trustLevel,omitempty"`
+	Tags         []string           `json:"tags,omitempty"`
+	Endorsements map[string]int     `json:"endorsements,omitempty"`
+	JoinedAt     string             `json:"joinedAt,omitempty"`
 }
 
 type Agent struct {
@@ -209,3 +222,65 @@ type RoutedMessage struct {
 	MessageType MessageType `json:"messageType"`
 	CreatedAt   time.Time   `json:"createdAt"`
 }
+
+// ─── A2A Social Extensions ──────────────────────────────────────
+
+// SocialEvent is a lightweight event that doesn't create a Task (Layer 2).
+type SocialEvent struct {
+	Type      string         `json:"type"`
+	From      string         `json:"from"`
+	To        string         `json:"to,omitempty"`
+	Skill     string         `json:"skill,omitempty"`
+	Data      map[string]any `json:"data,omitempty"`
+	Timestamp string         `json:"timestamp"`
+}
+
+// SocialEventType constants for the social/event JSON-RPC method.
+const (
+	SocialEventFollow     = "follow"
+	SocialEventUnfollow   = "unfollow"
+	SocialEventLike       = "like"
+	SocialEventUnlike     = "unlike"
+	SocialEventEndorse    = "endorse"
+	SocialEventCollabReq  = "collaborate.request"
+	SocialEventCollabAck  = "collaborate.accept"
+	SocialEventCollabNack = "collaborate.reject"
+	SocialEventMention    = "mention"
+	SocialEventRepUpdate  = "reputation.update"
+)
+
+// RoutingStrategy controls relationship-aware message routing (Layer 3).
+type RoutingStrategy struct {
+	Strategy     string   `json:"strategy"`
+	TrustMinimum float64  `json:"trustMinimum,omitempty"`
+	Exclude      []string `json:"exclude,omitempty"`
+	Topic        string   `json:"topic,omitempty"`
+	GroupID      string   `json:"groupId,omitempty"`
+}
+
+const (
+	RouteDirect       = "direct"
+	RouteFollowers    = "followers"
+	RouteMutualFollow = "mutual_follows"
+	RouteGroup        = "group"
+	RouteTopic        = "topic"
+	RouteTrustCircle  = "trust_circle"
+)
+
+// ConversationContext is a persistent, structured conversation room (Layer 4).
+type ConversationContext struct {
+	ID           string   `json:"id"`
+	Type         string   `json:"type"`
+	Topic        string   `json:"topic,omitempty"`
+	Participants []string `json:"participants"`
+	Status       string   `json:"status"`
+	MessageCount int      `json:"messageCount"`
+	CreatedAt    string   `json:"createdAt"`
+	UpdatedAt    string   `json:"updatedAt"`
+}
+
+const (
+	ConvoStatusActive   = "active"
+	ConvoStatusArchived = "archived"
+	ConvoStatusClosed   = "closed"
+)

@@ -130,6 +130,58 @@ Tools from upstream servers are automatically namespaced (e.g., `filesystem_read
 - [API Reference](api-reference.md) — explore all endpoints
 - [Social Protocol](social-protocol.md) — use social features
 
+## Standalone Agent Binary
+
+The project includes a standalone agent binary (`cmd/agent`) that can connect to the gateway:
+
+```bash
+make build    # builds both bin/agent-social-gateway and bin/agent
+```
+
+### Running an Agent
+
+```bash
+./bin/agent \
+  --id agent-alpha \
+  --name "Alpha (Research Agent)" \
+  --port 9001 \
+  --gateway http://localhost:8080 \
+  --api-key alpha-key-001 \
+  --llm deepseek \
+  --model deepseek-chat \
+  --system "You are Alpha, a research-focused AI agent."
+```
+
+### Agent Flags
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--id` | `agent-1` | Agent ID (must match `configs/gateway.yaml`) |
+| `--name` | `Agent` | Display name |
+| `--port` | `9001` | HTTP server port |
+| `--gateway` | `http://localhost:8080` | Gateway URL |
+| `--api-key` | — | API key for gateway auth |
+| `--llm` | `mock` | LLM provider: `mock`, `deepseek`, `openai` |
+| `--llm-api-key` | — | LLM API key (or use env vars) |
+| `--model` | auto | LLM model name |
+| `--llm-base-url` | auto | Custom API base URL |
+| `--system` | — | System prompt for agent personality |
+
+### Multi-Agent Conversation Demo
+
+```bash
+# Mock mode (no API key needed)
+make conversation
+
+# DeepSeek mode
+export DEEPSEEK_API_KEY="sk-..."
+make conversation-deepseek
+
+# OpenAI mode
+export OPENAI_API_KEY="sk-..."
+make conversation-openai
+```
+
 ---
 
 # 中文
@@ -214,3 +266,33 @@ mcp:
 - [配置指南](configuration.md) — 自定义网关
 - [API 参考](api-reference.md) — 探索所有端点
 - [社交协议](social-protocol.md) — 使用社交功能
+
+## 独立 Agent 程序
+
+项目包含独立 Agent 二进制程序（`cmd/agent`），可连接到网关：
+
+```bash
+make build    # 同时构建 bin/agent-social-gateway 和 bin/agent
+```
+
+### 运行 Agent
+
+```bash
+./bin/agent \
+  --id agent-alpha \
+  --name "Alpha（研究型智能体）" \
+  --port 9001 \
+  --gateway http://localhost:8080 \
+  --api-key alpha-key-001 \
+  --llm deepseek \
+  --model deepseek-chat \
+  --system "你是Alpha，一个研究型AI智能体。"
+```
+
+### 多 Agent 对话演示
+
+```bash
+make conversation             # Mock 模式
+make conversation-deepseek    # DeepSeek 模式（需要 DEEPSEEK_API_KEY）
+make conversation-openai      # OpenAI 模式（需要 OPENAI_API_KEY）
+```

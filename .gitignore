@@ -2,8 +2,11 @@ bin/
 *.db
 *.db-wal
 *.db-shm
+
 .env
 *.exe
 vendor/
 .DS_Store
 logs/
+
+.idea/

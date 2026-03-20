@@ -88,6 +88,32 @@ Override with the `-config` flag:
 | `security.token_budget.max_tokens_per_task` | int | `100000` | Max tokens per task |
 | `security.token_budget.alert_threshold` | float | `0.8` | Alert at this usage ratio |
 
+### agents
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `agents` | []object | `[]` | List of registered agents for message forwarding |
+| `agents[].id` | string | — | Agent identifier (e.g. `agent-alpha`) |
+| `agents[].name` | string | — | Agent display name |
+| `agents[].url` | string | — | Agent's HTTP base URL |
+| `agents[].api_key` | string | — | API key for authenticating forwarded messages |
+
+Example:
+
+```yaml
+agents:
+  - id: agent-alpha
+    name: "Research Agent"
+    url: "http://localhost:9001"
+    api_key: "alpha-key-001"
+  - id: agent-beta
+    name: "Code Agent"
+    url: "http://localhost:9002"
+    api_key: "beta-key-001"
+```
+
+When a `SendMessage` request includes `metadata.target_agent`, the gateway looks up the target from this registry and forwards the message with the configured API key.
+
 ### log
 
 | Key | Type | Default | Description |
@@ -194,6 +220,16 @@ log:
 | `security.auth.jwt.enabled` | 是否启用 JWT |
 | `security.rate_limit.requests_per_min` | 每分钟最大请求数 |
 | `security.token_budget.max_tokens_per_task` | 每任务最大 Token 数 |
+
+### agents（智能体注册）
+
+| 键 | 类型 | 说明 |
+|----|------|------|
+| `agents` | []object | 注册的智能体列表，用于消息转发 |
+| `agents[].id` | string | 智能体标识符 |
+| `agents[].name` | string | 显示名称 |
+| `agents[].url` | string | HTTP 基础 URL |
+| `agents[].api_key` | string | 转发消息时的认证 API Key |
 
 ### log（日志）
 

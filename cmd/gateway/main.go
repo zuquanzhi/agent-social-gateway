@@ -135,14 +135,6 @@ func registerAll(srv *server.Server, cfg *config.Config, db *storage.DB, logger 
 		logger.Info("mcp server registered", "endpoint", cfg.MCP.Server.SSEEndpoint)
 	}
 
-	// A2A Server (Phase 3)
-	if cfg.A2A.Enabled {
-		taskStore := a2a.NewTaskStore(db)
-		a2aSrv := a2a.NewServer(&cfg.A2A, taskStore, cfg.Agents, logger.With("component", "a2a-server"))
-		a2aSrv.RegisterRoutes(r)
-		logger.Info("a2a server registered", "agent", cfg.A2A.Agent.Name)
-	}
-
 	// Social features (Phase 6)
 	socialActions := social.NewActions(db, logger)
 	timeline := social.NewTimeline(db, logger)
@@ -152,6 +144,19 @@ func registerAll(srv *server.Server, cfg *config.Config, db *storage.DB, logger 
 	socialAPI := social.NewAPI(socialActions, timeline, logger)
 	socialAPI.RegisterRoutes(r)
 	logger.Info("social api registered")
+
+	// A2A Server (Phase 3) + Social Extensions (Layers 1-5)
+	if cfg.A2A.Enabled {
+		taskStore := a2a.NewTaskStore(db)
+		a2aSrv := a2a.NewServer(&cfg.A2A, taskStore, cfg.Agents, logger.With("component", "a2a-server"))
+		a2aSrv.RegisterRoutes(r)
+
+		socialExt := a2a.NewSocialExtensions(db, socialActions, timeline, logger)
+		a2aSrv.SetSocialExtensions(socialExt)
+		socialExt.RegisterRoutes(r)
+
+		logger.Info("a2a server registered", "agent", cfg.A2A.Agent.Name, "social_extensions", true)
+	}
 
 	// Discovery service (Phase 7)
 	dirCache := discovery.NewCache(db, logger)
@@ -181,7 +186,7 @@ func sseAwareTimeout(timeout time.Duration) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		wrapped := timeoutMW(next)
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if strings.HasPrefix(r.URL.Path, "/mcp/sse") {
+			if strings.HasPrefix(r.URL.Path, "/mcp/sse") || strings.HasSuffix(r.URL.Path, "/feed") {
 				next.ServeHTTP(w, r)
 				return
 			}
